@@ -96,7 +96,6 @@ const sprites = {
     size: 65,
     visible: false,
     layerOrder: 8,
-    playerSpeed: playerSpeed  // 直接将 playerSpeed 作为 Player 实例的属性
   }),
   Moon: new Moon({
     x: 218,
@@ -112,6 +111,7 @@ const sprites = {
 
 const project = new Project(stage, sprites, {
   frameRate: 30,  // 帧率控制游戏速度
+  playerSpeed: playerSpeed  // 将 playerSpeed 传递给项目
 });
 
 let isGameStarted = false;  // 标记游戏是否已经开始
@@ -133,7 +133,7 @@ document.addEventListener("keydown", function (event) {
 function gameLoop() {
   if (isGameOver) return;  // 如果游戏结束，停止循环
 
-  sprites.Player.x += sprites.Player.playerSpeed;  // 玩家自动前进
+  sprites.Player.x += playerSpeed;  // 玩家自动前进
 
   if (checkCollision(sprites.Player, sprites.Spikes)) {
     touchedSpikes = true; // 玩家碰到了尖刺

@@ -31,16 +31,21 @@ export default class Player extends Sprite {
       new Trigger(Trigger.BROADCAST, { name: "Now" }, this.whenIReceiveNow),
       new Trigger(Trigger.GREEN_FLAG, this.whenGreenFlagClicked2),
     ];
+
+    this.isJumping = false;  // 添加跳跃状态标志位，防止重复跳跃
   }
 
   // 定义跳跃逻辑
   handleJump() {
-    console.log("Jump triggered!");  // 调试日志
-    this.stage.vars.y2 = 15;  // 垂直跳跃速度
-    if (this.compare(Math.abs(this.toNumber(this.stage.vars.x)), this.stage.vars.x) === 0) {
-      this.stage.vars.x = -5;  // 水平跳跃调整
-    } else {
-      this.stage.vars.x = 5;
+    if (!this.isJumping) {  // 如果没有正在跳跃，执行跳跃逻辑
+      console.log("Jump triggered!");  // 调试日志
+      this.stage.vars.y2 = 15;  // 垂直跳跃速度
+      if (this.compare(Math.abs(this.toNumber(this.stage.vars.x)), this.stage.vars.x) === 0) {
+        this.stage.vars.x = -5;  // 水平跳跃调整
+      } else {
+        this.stage.vars.x = 5;
+      }
+      this.isJumping = true;  // 标记为正在跳跃
     }
   }
 
@@ -56,7 +61,6 @@ export default class Player extends Sprite {
     this.stage.vars.y2 = 0;
     this.direction = 90;
 
-    // 直接从 this.playerSpeed 读取速度
     const playerSpeed = this.playerSpeed || 1;
 
     while (true) {
@@ -106,6 +110,7 @@ export default class Player extends Sprite {
       if (this.touching(this.sprites["Platforms"].andClones())) {
         this.y += 0 - this.toNumber(this.stage.vars.y2);
         this.stage.vars.y2 = 1;
+        this.isJumping = false;  // 跳跃结束，允许下一次跳跃
       }
       this.y -= 1;
 
