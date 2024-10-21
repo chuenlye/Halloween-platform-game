@@ -55,7 +55,9 @@ export default class Player extends Sprite {
     this.stage.vars.x = 0;
     this.stage.vars.y2 = 0;
     this.direction = 90;
-    const playerSpeed = this.project.playerSpeed || 1;  // 使用传递的速度
+
+    // 直接从 this.playerSpeed 读取速度
+    const playerSpeed = this.playerSpeed || 1;
 
     while (true) {
       this.stage.vars.y2--;
@@ -64,7 +66,7 @@ export default class Player extends Sprite {
       if (
         this.keyPressed("left arrow") ||
         this.keyPressed("a") ||
-        (this.mouse.down && this.compare(this.x, this.mouse.x) > 0)  // 恢复鼠标点击检测
+        (this.mouse.down && this.compare(this.x, this.mouse.x) > 0)
       ) {
         this.costume = "costume2";
         this.stage.vars.x -= 0.7 * playerSpeed;
@@ -72,7 +74,7 @@ export default class Player extends Sprite {
       if (
         this.keyPressed("right arrow") ||
         this.keyPressed("d") ||
-        (this.mouse.down && this.compare(this.mouse.x, this.x) > 0)  // 恢复鼠标点击检测
+        (this.mouse.down && this.compare(this.mouse.x, this.x) > 0)
       ) {
         this.costume = "costume1";
         this.stage.vars.x += 0.7 * playerSpeed;
@@ -86,24 +88,15 @@ export default class Player extends Sprite {
         this.y += 1;
       }
       if (this.touching(this.sprites["Platforms"].andClones())) {
-        this.y += 1;
-      }
-      if (this.touching(this.sprites["Platforms"].andClones())) {
-        this.y += 1;
-      }
-      if (this.touching(this.sprites["Platforms"].andClones())) {
-        this.y += 1;
-      }
-      if (this.touching(this.sprites["Platforms"].andClones())) {
         this.y -= 4;
         this.x += this.toNumber(this.stage.vars.x) * -1;
         if (
           this.keyPressed("up arrow") ||
           this.keyPressed("w") ||
-          this.keyPressed("enter") ||  // 使用小写的 "enter"
-          (this.mouse.down && this.compare(this.mouse.y, this.y) > 0)  // 恢复鼠标点击检测
+          this.keyPressed("enter") ||  // 小写 enter
+          (this.mouse.down && this.compare(this.mouse.y, this.y) > 0)
         ) {
-          this.handleJump();  // 调用跳跃逻辑
+          this.handleJump();
         } else {
           this.stage.vars.x = 0;
         }
@@ -121,10 +114,10 @@ export default class Player extends Sprite {
         (this.keyPressed("up arrow") ||
           this.keyPressed("w") ||
           this.keyPressed("enter") ||  // 使用小写的 "enter"
-          (this.mouse.down && this.compare(this.mouse.y, this.y) > 0)) &&  // 恢复鼠标点击检测
+          (this.mouse.down && this.compare(this.mouse.y, this.y) > 0)) &&
         this.touching(this.sprites["Platforms"].andClones())
       ) {
-        this.handleJump();  // 调用跳跃逻辑
+        this.handleJump(); // 调用跳跃逻辑
       }
 
       this.y += 1;
