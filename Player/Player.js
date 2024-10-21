@@ -33,6 +33,17 @@ export default class Player extends Sprite {
     ];
   }
 
+  // 定义跳跃逻辑
+  handleJump() {
+    console.log("Jump triggered!");  // 调试日志
+    this.stage.vars.y2 = 15;  // 垂直跳跃速度
+    if (this.compare(Math.abs(this.toNumber(this.stage.vars.x)), this.stage.vars.x) === 0) {
+      this.stage.vars.x = -5;  // 水平跳跃调整
+    } else {
+      this.stage.vars.x = 5;
+    }
+  }
+
   *whenGreenFlagClicked() {
     this.size = 65;
     this.moveAhead();
@@ -44,26 +55,33 @@ export default class Player extends Sprite {
     this.stage.vars.x = 0;
     this.stage.vars.y2 = 0;
     this.direction = 90;
+    const playerSpeed = this.project.playerSpeed || 1;  // 使用传递的速度
+
     while (true) {
       this.stage.vars.y2--;
+
+      // 控制左右移动速度
       if (
         this.keyPressed("left arrow") ||
         this.keyPressed("a") ||
-        (this.mouse.down && this.compare(this.x, this.mouse.x) > 0)
+        (this.mouse.down && this.compare(this.x, this.mouse.x) > 0)  // 恢复鼠标点击检测
       ) {
         this.costume = "costume2";
-        this.stage.vars.x -= 0.7;
+        this.stage.vars.x -= 0.7 * playerSpeed;
       }
       if (
         this.keyPressed("right arrow") ||
         this.keyPressed("d") ||
-        (this.mouse.down && this.compare(this.mouse.x, this.x) > 0)
+        (this.mouse.down && this.compare(this.mouse.x, this.x) > 0)  // 恢复鼠标点击检测
       ) {
         this.costume = "costume1";
-        this.stage.vars.x += 0.7;
+        this.stage.vars.x += 0.7 * playerSpeed;
       }
+
       this.stage.vars.x = this.toNumber(this.stage.vars.x) * 0.9;
       this.x += this.toNumber(this.stage.vars.x);
+
+      // 处理平台碰撞逻辑
       if (this.touching(this.sprites["Platforms"].andClones())) {
         this.y += 1;
       }
@@ -82,37 +100,33 @@ export default class Player extends Sprite {
         if (
           this.keyPressed("up arrow") ||
           this.keyPressed("w") ||
-          (this.mouse.down && this.compare(this.mouse.y, this.y) > 0)
+          this.keyPressed("enter") ||  // 使用小写的 "enter"
+          (this.mouse.down && this.compare(this.mouse.y, this.y) > 0)  // 恢复鼠标点击检测
         ) {
-          this.stage.vars.y2 = 10;
-          if (
-            this.compare(
-              Math.abs(this.toNumber(this.stage.vars.x)),
-              this.stage.vars.x
-            ) === 0
-          ) {
-            this.stage.vars.x = -5;
-          } else {
-            this.stage.vars.x = 5;
-          }
+          this.handleJump();  // 调用跳跃逻辑
         } else {
           this.stage.vars.x = 0;
         }
       }
+
       this.y += this.toNumber(this.stage.vars.y2);
       if (this.touching(this.sprites["Platforms"].andClones())) {
         this.y += 0 - this.toNumber(this.stage.vars.y2);
         this.stage.vars.y2 = 1;
       }
       this.y -= 1;
+
+      // 跳跃逻辑
       if (
         (this.keyPressed("up arrow") ||
           this.keyPressed("w") ||
-          (this.mouse.down && this.compare(this.mouse.y, this.y) > 0)) &&
+          this.keyPressed("enter") ||  // 使用小写的 "enter"
+          (this.mouse.down && this.compare(this.mouse.y, this.y) > 0)) &&  // 恢复鼠标点击检测
         this.touching(this.sprites["Platforms"].andClones())
       ) {
-        this.stage.vars.y2 = 15;
+        this.handleJump();  // 调用跳跃逻辑
       }
+
       this.y += 1;
       if (this.compare(this.y, 180) > 0) {
         this.stage.vars.y2 = 0;
