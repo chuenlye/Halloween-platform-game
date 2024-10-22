@@ -32,20 +32,18 @@ export default class Player extends Sprite {
       new Trigger(Trigger.GREEN_FLAG, this.whenGreenFlagClicked2),
     ];
 
-    this.isJumping = false;  // 添加跳跃状态标志位，防止重复跳跃
+    this.isJumping = false;  // 标记是否正在跳跃
+    this.canJump = true;     // 标记是否可以跳跃
   }
 
   // 定义跳跃逻辑
   handleJump() {
-    if (!this.isJumping) {  // 如果没有正在跳跃，执行跳跃逻辑
+    if (!this.isJumping && this.canJump) {
       console.log("Jump triggered!");  // 调试日志
-      this.stage.vars.y2 = 15;  // 垂直跳跃速度
-      if (this.compare(Math.abs(this.toNumber(this.stage.vars.x)), this.stage.vars.x) === 0) {
-        this.stage.vars.x = -5;  // 水平跳跃调整
-      } else {
-        this.stage.vars.x = 5;
-      }
-      this.isJumping = true;  // 标记为正在跳跃
+      this.stage.vars.y2 = 15;  // 向上跳跃的距离
+      this.x += 10;  // 每次跳跃向右移动10单位
+      this.isJumping = true;  // 标记正在跳跃
+      this.canJump = false;  // 禁止连续跳跃，直到玩家落地
     }
   }
 
@@ -61,73 +59,28 @@ export default class Player extends Sprite {
     this.stage.vars.y2 = 0;
     this.direction = 90;
 
-    const playerSpeed = this.playerSpeed || 1;
-
     while (true) {
       this.stage.vars.y2--;
 
-      // 控制左右移动速度
-      if (
-        this.keyPressed("left arrow") ||
-        this.keyPressed("a") ||
-        (this.mouse.down && this.compare(this.x, this.mouse.x) > 0)
-      ) {
-        this.costume = "costume2";
-        this.stage.vars.x -= 0.7 * playerSpeed;
-      }
-      if (
-        this.keyPressed("right arrow") ||
-        this.keyPressed("d") ||
-        (this.mouse.down && this.compare(this.mouse.x, this.x) > 0)
-      ) {
-        this.costume = "costume1";
-        this.stage.vars.x += 0.7 * playerSpeed;
+      // 检测按下Enter键触发跳跃，只允许跳一次，直到落地
+      if (this.keyPressed("enter") && !this.isJumping) {
+        this.handleJump();
       }
 
-      this.stage.vars.x = this.toNumber(this.stage.vars.x) * 0.9;
-      this.x += this.toNumber(this.stage.vars.x);
-
-      // 处理平台碰撞逻辑
+      // 检测玩家是否碰到平台，并调整位置，防止下沉
       if (this.touching(this.sprites["Platforms"].andClones())) {
-        this.y += 1;
-      }
-      if (this.touching(this.sprites["Platforms"].andClones())) {
-        this.y -= 4;
-        this.x += this.toNumber(this.stage.vars.x) * -1;
-        if (
-          this.keyPressed("up arrow") ||
-          this.keyPressed("w") ||
-          this.keyPressed("enter") ||  // 小写 enter
-          (this.mouse.down && this.compare(this.mouse.y, this.y) > 0)
-        ) {
-          this.handleJump();
-        } else {
-          this.stage.vars.x = 0;
-        }
+        this.y = this.sprites["Platforms"].y + 10;  // 防止玩家穿透平台
+        this.isJumping = false;  // 允许再次跳跃
+        this.canJump = true;  // 玩家着陆后可以再次跳跃
+        this.stage.vars.y2 = 0;  // 重置下落速度，避免下沉
       }
 
+      // 更新y轴的位置
       this.y += this.toNumber(this.stage.vars.y2);
-      if (this.touching(this.sprites["Platforms"].andClones())) {
-        this.y += 0 - this.toNumber(this.stage.vars.y2);
-        this.stage.vars.y2 = 1;
-        this.isJumping = false;  // 跳跃结束，允许下一次跳跃
-      }
-      this.y -= 1;
 
-      // 跳跃逻辑
-      if (
-        (this.keyPressed("up arrow") ||
-          this.keyPressed("w") ||
-          this.keyPressed("enter") ||  // 使用小写的 "enter"
-          (this.mouse.down && this.compare(this.mouse.y, this.y) > 0)) &&
-        this.touching(this.sprites["Platforms"].andClones())
-      ) {
-        this.handleJump(); // 调用跳跃逻辑
-      }
-
-      this.y += 1;
+      // 防止玩家掉出屏幕外
       if (this.compare(this.y, 180) > 0) {
-        this.stage.vars.y2 = 0;
+        this.stage.vars.y2 = 0;  // 当达到顶部时停止上升
       }
       yield;
     }
