@@ -1,6 +1,7 @@
 import {
   Project,
-  Sprite,  // 保留 Sprite 的导入
+  Sprite,
+  Trigger  // 添加对 Trigger 的导入
 } from "https://unpkg.com/leopard@^1/dist/index.esm.js";
 import Stage from "./Stage/Stage.js";
 import Platforms from "./Platforms/Platforms.js";
@@ -119,9 +120,10 @@ document.addEventListener("keydown", function (event) {
 
   if (event.key === "Enter") {
     if (!isGameStarted) {
-      isGameStarted = true;  // 开始游戏
-      //sprites.Player.handleJump(); // 让玩家开始跳跃
+      isGameStarted = true;  // 标记游戏已经开始
     }
+    // 每次按下 Enter 键，注册跳跃
+    sprites.Player.registerJump();
   }
 });
 
