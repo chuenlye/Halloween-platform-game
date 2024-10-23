@@ -1,6 +1,6 @@
 import {
   Project,
-  Sprite,
+  Sprite,  // 保留 Sprite 的导入
 } from "https://unpkg.com/leopard@^1/dist/index.esm.js";
 import Stage from "./Stage/Stage.js";
 import Platforms from "./Platforms/Platforms.js";
@@ -109,28 +109,20 @@ const sprites = {
 };
 
 const project = new Project(stage, sprites, {
-  frameRate: 30,  // 控制游戏速度
+  frameRate: 30,  // 帧率控制游戏速度
 });
 
-let isGameStarted = false;  // 标记游戏是否已开始
-let isGameOver = false;     // 标记游戏是否结束
+let isGameStarted = false;  // 标记游戏是否已经开始
 
 document.addEventListener("keydown", function (event) {
   console.log('Key pressed:', event.key);  // 调试日志
 
-  if (event.key === "Enter" && !isGameOver) {
+  if (event.key === "Enter") {
     if (!isGameStarted) {
       isGameStarted = true;  // 开始游戏
+      //sprites.Player.handleJump(); // 让玩家开始跳跃
     }
-    // 不需要在这里处理跳跃逻辑，跳跃由 Player.js 完成
   }
 });
-
-// 游戏重置函数
-function resetGame() {
-  setTimeout(() => {
-    window.location.reload();  // 延迟后刷新页面
-  }, 1000);
-}
 
 export default project;
