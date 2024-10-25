@@ -29,14 +29,13 @@ export default class Player extends Sprite {
     this.triggers = [
       new Trigger(Trigger.GREEN_FLAG, this.whenGreenFlagClicked),
       new Trigger(Trigger.BROADCAST, { name: "Jump" }, this.handleJump), // 注册跳跃的广播
-      new Trigger(Trigger.BROADCAST, { name: "levelup" }, this.handleLevelUp), // 关卡切换后重置
     ];
 
     this.isJumping = false;  // 标记是否正在跳跃
     this.canJump = true;     // 标记是否可以跳跃
     this.jumpCount = 0;      // 记录按下 Enter 键的次数
     this.jumpTimeout = null; // 用于计时连击的超时
-    this.levelUpTriggered = false; // 关卡切换标志
+    this.levelUpTriggered = false; // 标记关卡切换状态
   }
 
   // 跳跃处理，使用 glide 实现平滑跳跃，根据按键次数控制跳跃大小
@@ -77,7 +76,7 @@ export default class Player extends Sprite {
     this.effects.ghost = 0;
     this.visible = true;
     this.goto(-180, -110); // 初始位置
-    this.stage.vars.level = 1; // 重置关卡为1
+    this.stage.vars.level = 1; // 初始化关卡为1
     this.levelUpTriggered = false; // 初始化关卡切换标志
 
     while (true) {
@@ -108,10 +107,17 @@ export default class Player extends Sprite {
       // 检测玩家是否到达屏幕右边缘，进入下一关
       if (this.compare(this.x, 246) > 0 && !this.levelUpTriggered) {
         console.log("Level up!");
-        this.levelUpTriggered = true; // 标记为已触发
+
+        this.levelUpTriggered = true; // 标记关卡切换
         this.stage.vars.level++; // 增加关卡
         this.broadcast("levelup"); // 触发进入下一关的事件
-        yield* this.wait(1); // 确保不会重复触发
+
+        // 使用 while 循环等待玩家回到初始位置，防止重复触发
+        while (this.x >= 0) {
+          yield;  // 保持等待，避免多次触发
+        }
+
+        this.levelUpTriggered = false;  // 准备下一个关卡切换
       }
 
       // 达到第15关，游戏结束
@@ -122,14 +128,6 @@ export default class Player extends Sprite {
 
       yield;
     }
-  }
-
-  *handleLevelUp() {
-    this.goto(-180, -110); // 每次关卡切换后重置 Player 的位置
-    this.isJumping = false;
-    this.canJump = true;
-    this.jumpCount = 0;
-    this.levelUpTriggered = false; // 允许下一个关卡触发
   }
 
   // 记录按键次数并决定跳跃大小
