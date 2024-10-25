@@ -26,18 +26,17 @@ export default class Player extends Sprite {
 
     this.sounds = [new Sound("Plopp", "./Player/sounds/Plopp.wav")];
 
+    // 注册触发器
     this.triggers = [
       new Trigger(Trigger.GREEN_FLAG, this.whenGreenFlagClicked),
       new Trigger(Trigger.GREEN_FLAG, this.whenGreenFlagClicked2),
       new Trigger(Trigger.GREEN_FLAG, this.startTimer),
-      new Trigger(Trigger.BROADCAST, { name: "timeup" }, this.whenTimeUp),
-      new Trigger(Trigger.BROADCAST, { name: "gameover" }, this.whenGameOver),
     ];
 
     // 初始化变量
     this.vars.enterPressCount = 0;
     this.vars.enterPressTimer = 0;
-    // 计时器和得分将在 whenGreenFlagClicked 中初始化
+    // 游戏变量将在 whenGreenFlagClicked 中初始化
   }
 
   *whenGreenFlagClicked() {
@@ -93,17 +92,10 @@ export default class Player extends Sprite {
       this.x += this.toNumber(this.stage.vars.x);
 
       // 碰撞检测和位置调整（保持原有逻辑）
-      if (this.touching(this.sprites["Platforms"].andClones())) {
-        this.y += 1;
-      }
-      if (this.touching(this.sprites["Platforms"].andClones())) {
-        this.y += 1;
-      }
-      if (this.touching(this.sprites["Platforms"].andClones())) {
-        this.y += 1;
-      }
-      if (this.touching(this.sprites["Platforms"].andClones())) {
-        this.y += 1;
+      for (let i = 0; i < 4; i++) {
+        if (this.touching(this.sprites["Platforms"].andClones())) {
+          this.y += 1;
+        }
       }
       if (this.touching(this.sprites["Platforms"].andClones())) {
         this.y -= 4;
@@ -114,7 +106,7 @@ export default class Player extends Sprite {
       // 垂直运动和碰撞检测（保持原有逻辑）
       this.y += this.toNumber(this.stage.vars.y2);
       if (this.touching(this.sprites["Platforms"].andClones())) {
-        this.y += 0 - this.toNumber(this.stage.vars.y2);
+        this.y -= this.toNumber(this.stage.vars.y2);
         this.stage.vars.y2 = 1;
       }
       this.y -= 1;
@@ -137,6 +129,9 @@ export default class Player extends Sprite {
 
       yield;
     }
+
+    // 游戏结束后，隐藏角色
+    this.visible = false;
   }
 
   *whenGreenFlagClicked2() {
@@ -157,9 +152,9 @@ export default class Player extends Sprite {
         this.stage.vars.score += 10; // 过关加10分
         console.log("进入下一关：" + this.stage.vars.level);
       }
-      if (this.toNumber(this.stage.vars.level) === 4) {
-        this.broadcast("gameover");
+      if (this.stage.vars.level >= 4) {
         this.stage.vars.gameOver = true;
+        this.broadcast("gameover");
       }
       yield;
     }
@@ -171,46 +166,8 @@ export default class Player extends Sprite {
       this.stage.vars.timer--;
     }
     if (!this.stage.vars.gameOver) {
-      this.broadcast("timeup");
       this.stage.vars.gameOver = true;
+      this.broadcast("timeup");
     }
-  }
-
-  *whenTimeUp() {
-    // 时间到，显示得分和奖项
-    this.visible = false;
-    let score = this.stage.vars.score;
-    let prize = "";
-    if (score >= 30) {
-      prize = "一等奖";
-    } else if (score >= 20) {
-      prize = "二等奖";
-    } else if (score >= 10) {
-      prize = "三等奖";
-    } else {
-      prize = "未获奖";
-    }
-    // 显示消息
-    console.log(`时间到！您的总得分是${score}分，获得${prize}！`);
-    // 游戏结束，所有循环会因为 gameOver 为 true 而停止
-  }
-
-  *whenGameOver() {
-    // 游戏结束，显示得分和奖项
-    this.visible = false;
-    let score = this.stage.vars.score;
-    let prize = "";
-    if (score >= 30) {
-      prize = "一等奖";
-    } else if (score >= 20) {
-      prize = "二等奖";
-    } else if (score >= 10) {
-      prize = "三等奖";
-    } else {
-      prize = "未获奖";
-    }
-    // 显示消息
-    console.log(`游戏结束！您的总得分是${score}分，获得${prize}！`);
-    // 游戏结束，所有循环会因为 gameOver 为 true 而停止
   }
 }
