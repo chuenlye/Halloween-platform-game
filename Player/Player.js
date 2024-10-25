@@ -29,12 +29,14 @@ export default class Player extends Sprite {
     this.triggers = [
       new Trigger(Trigger.GREEN_FLAG, this.whenGreenFlagClicked),
       new Trigger(Trigger.BROADCAST, { name: "Jump" }, this.handleJump), // 注册跳跃的广播
+      new Trigger(Trigger.BROADCAST, { name: "levelup" }, this.handleLevelUp), // 关卡切换后重置
     ];
 
     this.isJumping = false;  // 标记是否正在跳跃
     this.canJump = true;     // 标记是否可以跳跃
     this.jumpCount = 0;      // 记录按下 Enter 键的次数
     this.jumpTimeout = null; // 用于计时连击的超时
+    this.levelUpTriggered = false; // 关卡切换标志
   }
 
   // 跳跃处理，使用 glide 实现平滑跳跃，根据按键次数控制跳跃大小
@@ -75,6 +77,8 @@ export default class Player extends Sprite {
     this.effects.ghost = 0;
     this.visible = true;
     this.goto(-180, -110); // 初始位置
+    this.stage.vars.level = 1; // 重置关卡为1
+    this.levelUpTriggered = false; // 初始化关卡切换标志
 
     while (true) {
       // 检测是否碰到平台
@@ -84,14 +88,10 @@ export default class Player extends Sprite {
         // 获取平台 costume 的中心位置，并使用它调整 player 的位置
         const platformCostume = this.sprites["Platforms"].costume;
         const platformCenterY = platformCostume.center.y;  // 获取平台 costume 的中心 y
-        const platformHeight = platformCostume.size.height; // 获取平台的高度
         const platformY = this.sprites["Platforms"].y;
 
-        // 计算平台的顶部位置（注意：平台Y是中心点，所以我们减去一半高度）
-        const platformTopY = platformY + platformCenterY + platformHeight / 2;
-
-        // 将 Player 置于平台的顶部，略微调整以确保玩家站在平台上
-        this.y = platformTopY + this.size / 2;  // Player的脚放在平台的顶部
+        // 将 Player 置于平台的顶部
+        this.y = platformY + platformCenterY + this.size / 2;
 
         this.isJumping = false;  // 允许再次跳跃
         this.canJump = true;     // 恢复跳跃能力
@@ -106,11 +106,12 @@ export default class Player extends Sprite {
       }
 
       // 检测玩家是否到达屏幕右边缘，进入下一关
-      if (this.compare(this.x, 246) > 0) {
+      if (this.compare(this.x, 246) > 0 && !this.levelUpTriggered) {
         console.log("Level up!");
-        this.goto(-180, -110); // 回到初始位置
+        this.levelUpTriggered = true; // 标记为已触发
+        this.stage.vars.level++; // 增加关卡
         this.broadcast("levelup"); // 触发进入下一关的事件
-        this.stage.vars.level++;
+        yield* this.wait(1); // 确保不会重复触发
       }
 
       // 达到第15关，游戏结束
@@ -121,6 +122,14 @@ export default class Player extends Sprite {
 
       yield;
     }
+  }
+
+  *handleLevelUp() {
+    this.goto(-180, -110); // 每次关卡切换后重置 Player 的位置
+    this.isJumping = false;
+    this.canJump = true;
+    this.jumpCount = 0;
+    this.levelUpTriggered = false; // 允许下一个关卡触发
   }
 
   // 记录按键次数并决定跳跃大小
