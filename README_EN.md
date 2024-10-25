@@ -22,6 +22,13 @@ You can play this game online via GitHub Pages:
 - **Enter Key**: Press the giant Enter key to move and jump the character.
 - **Objective**: Collect as many points as possible within 20 seconds.
 
+## Acknowledgments
+
+- Scratch Project: https://scratch.mit.edu/projects/368597920/  
+  I gained a lot of joy from this game. A big thank you!
+- [leopard](https://github.com/leopard-js/leopard): So cool.
+- This project uses icons from [Font Awesome](https://fontawesome.com/). Thank you to them for providing free resources.
+
 ---
 
 **Happy Halloween!** 🎃👻

@@ -22,6 +22,12 @@
 - **回车键**：按下巨大的回车键来移动和跳跃角色。
 - **目标**：在 20 秒内尽可能多地收集积分。
 
+## 致谢
+
+- Scratch Project: https://scratch.mit.edu/projects/368597920/ , 从这个游戏收获了很多的开心，大大的谢谢。
+- [leopard](https://github.com/leopard-js/leopard): 太酷了
+- 本项目使用了 [Font Awesome](https://fontawesome.com/) 的图标，感谢他们提供的免费资源。
+
 ---
 
 **万圣节快乐！** 🎃👻

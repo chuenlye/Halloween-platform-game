@@ -5,20 +5,35 @@
       rel="stylesheet"
       href="https://unpkg.com/leopard@^1/dist/index.min.css"
     />
+    <!-- 引入 Font Awesome CSS -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
     <style>
       #controls {
         margin-bottom: 10px;
       }
       #controls button {
+        background-color: #fff;
+        border: none;
+        cursor: pointer;
+        padding: 5px;
         margin-right: 5px;
-        padding: 5px 10px;
-        font-size: 16px;
+        outline: none;
+      }
+      #controls button:hover {
+        background-color: #f0f0f0;
+      }
+      #controls i {
+        vertical-align: middle;
       }
       #project {
         width: 100%;
         height: 100%;
       }
-      body, html {
+      body,
+      html {
         width: 100%;
         height: 100%;
         margin: 0;
@@ -28,8 +43,12 @@
   </head>
   <body>
     <div id="controls">
-      <button id="greenFlag">Green Flag</button>
-      <button id="fullscreen">Fullscreen</button>
+      <button id="greenFlag" title="Start">
+        <i class="fa-solid fa-flag" style="color: #00C000; font-size: 24px;"></i>
+      </button>
+      <button id="fullscreen" title="Fullscreen">
+        <i class="fa-solid fa-expand" style="font-size: 24px;"></i>
+      </button>
     </div>
     <div id="project"></div>
 
@@ -41,7 +60,8 @@
       document.querySelector("#greenFlag").addEventListener("click", () => {
         project.greenFlag();
       });
-        // 添加键盘事件监听器，按下 "r" 键时执行 project.greenFlag()
+
+      // 添加键盘事件监听器，按下 "r" 键时执行 project.greenFlag()
       document.addEventListener("keydown", (event) => {
         if (event.key.toLowerCase() === "r") {
           project.greenFlag();
@@ -78,14 +98,14 @@
 
       // 调整画布尺寸
       function resizeCanvas() {
-        const canvas = document.querySelector('canvas');
+        const canvas = document.querySelector("canvas");
         if (canvas) {
-          canvas.style.width = '100%';
-          canvas.style.height = '100%';
+          canvas.style.width = "100%";
+          canvas.style.height = "100%";
         }
       }
 
-      window.addEventListener('resize', resizeCanvas);
+      window.addEventListener("resize", resizeCanvas);
       resizeCanvas(); // 初始化时调用一次
 
       // Autoplay
