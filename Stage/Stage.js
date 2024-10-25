@@ -55,8 +55,17 @@ export default class Stage extends StageBase {
   *whenGreenFlagClicked() {
     this.costume = "backdrop2";
     this.vars.musicPlaying = true; // 重置音乐播放状态
+
+    // 获取声音名称列表
+    const soundNames = this.sounds.map(sound => sound.name);
+
+    // 随机选择一首音乐
+    const randomIndex = Math.floor(Math.random() * soundNames.length);
+    const randomSoundName = soundNames[randomIndex];
+
+    // 在循环中播放随机选择的音乐
     while (this.vars.musicPlaying) {
-      yield* this.playSoundUntilDone("Lost In The Woods - PaulRHJT");
+      yield* this.playSoundUntilDone(randomSoundName);
       // 检查音乐播放状态，如果被设置为 false，则退出循环
       if (!this.vars.musicPlaying) {
         break;
