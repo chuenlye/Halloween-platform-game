@@ -170,4 +170,5 @@ export default class Player extends Sprite {
       this.broadcast("timeup");
     }
   }
+
 }

@@ -41,23 +41,32 @@ export default class Stage extends StageBase {
     ];
 
     this.triggers = [
-      new Trigger(Trigger.BROADCAST, { name: "Now" }, this.whenIReceiveNow),
       new Trigger(Trigger.GREEN_FLAG, this.whenGreenFlagClicked),
+      new Trigger(Trigger.BROADCAST, { name: "StopMusic" }, this.whenIReceiveStopMusic),
     ];
 
     this.vars.x = 0;
     this.vars.level = 1;
     this.vars.gameyo = "false";
     this.vars.y2 = 0;
+    this.vars.musicPlaying = true; // 新增变量，控制音乐播放状态
   }
-
-  *whenIReceiveNow() {}
 
   *whenGreenFlagClicked() {
     this.costume = "backdrop2";
-    while (true) {
+    this.vars.musicPlaying = true; // 重置音乐播放状态
+    while (this.vars.musicPlaying) {
       yield* this.playSoundUntilDone("Lost In The Woods - PaulRHJT");
+      // 检查音乐播放状态，如果被设置为 false，则退出循环
+      if (!this.vars.musicPlaying) {
+        break;
+      }
       yield;
     }
+  }
+
+  *whenIReceiveStopMusic() {
+    this.vars.musicPlaying = false; // 设置音乐播放状态为 false，停止循环
+    this.stopAllSounds(); // 停止所有声音
   }
 }
