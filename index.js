@@ -1,8 +1,8 @@
 import {
   Project,
   Sprite,
-  Trigger  // 添加对 Trigger 的导入
 } from "https://unpkg.com/leopard@^1/dist/index.esm.js";
+
 import Stage from "./Stage/Stage.js";
 import Platforms from "./Platforms/Platforms.js";
 import Spikes from "./Spikes/Spikes.js";
@@ -106,25 +106,10 @@ const sprites = {
     size: 102,
     visible: true,
     layerOrder: 2,
-  })
+  }),
 };
 
 const project = new Project(stage, sprites, {
-  frameRate: 30,  // 帧率控制游戏速度
+  frameRate: 30, // Set to 60 to make your project run faster
 });
-
-let isGameStarted = false;  // 标记游戏是否已经开始
-
-document.addEventListener("keydown", function (event) {
-  console.log('Key pressed:', event.key);  // 调试日志
-
-  if (event.key === "Enter") {
-    if (!isGameStarted) {
-      isGameStarted = true;  // 标记游戏已经开始
-    }
-    // 每次按下 Enter 键，注册跳跃
-    sprites.Player.registerJump();
-  }
-});
-
 export default project;

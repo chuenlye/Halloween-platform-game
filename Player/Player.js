@@ -28,123 +28,189 @@ export default class Player extends Sprite {
 
     this.triggers = [
       new Trigger(Trigger.GREEN_FLAG, this.whenGreenFlagClicked),
-      new Trigger(Trigger.BROADCAST, { name: "Jump" }, this.handleJump), // 注册跳跃的广播
+      new Trigger(Trigger.GREEN_FLAG, this.whenGreenFlagClicked2),
+      new Trigger(Trigger.GREEN_FLAG, this.startTimer),
+      new Trigger(Trigger.BROADCAST, { name: "timeup" }, this.whenTimeUp),
+      new Trigger(Trigger.BROADCAST, { name: "gameover" }, this.whenGameOver),
     ];
 
-    this.isJumping = false;  // 标记是否正在跳跃
-    this.canJump = true;     // 标记是否可以跳跃
-    this.jumpCount = 0;      // 记录按下 Enter 键的次数
-    this.jumpTimeout = null; // 用于计时连击的超时
-    this.levelUpTriggered = false; // 标记关卡切换状态
-  }
-
-  // 跳跃处理，使用 glide 实现平滑跳跃，根据按键次数控制跳跃大小
-  *handleJump() {
-    console.log("Jumping Handler! Jump count: " + this.jumpCount);
-    if (this.canJump && !this.isJumping) {
-      this.isJumping = true;
-      this.canJump = false;
-
-      // 根据 jumpCount 设置跳跃的距离和高度
-      let xMove = 40; // 基础跳跃距离
-      let yMove = 80; // 基础跳跃高度
-
-      if (this.jumpCount === 2) {  // 双击跳跃
-        console.log("Double jump!");
-        xMove = 70;
-        yMove = 120;
-      } else if (this.jumpCount >= 3) {  // 三连击跳跃
-        console.log("Triple jump!");
-        xMove = 100;
-        yMove = 150;
-      }
-
-      // 通过 glide 实现跳跃，先向上跳，再向下落
-      yield* this.glide(0.3, this.x + xMove, this.y + yMove); // 向右跳跃并向上
-      yield* this.glide(0.5, this.x + xMove, this.y - yMove); // 向右移动并下落
-
-      this.isJumping = false;
-      this.canJump = true;  // 落地后恢复跳跃能力
-      this.jumpCount = 0;   // 重置跳跃次数
-    }
+    // 初始化变量
+    this.vars.enterPressCount = 0;
+    this.vars.enterPressTimer = 0;
+    // 计时器和得分将在 whenGreenFlagClicked 中初始化
   }
 
   *whenGreenFlagClicked() {
+    // 初始化角色状态
     this.size = 65;
     this.moveAhead();
     this.costume = "costume1";
     this.effects.ghost = 0;
     this.visible = true;
-    this.goto(-180, -110); // 初始位置
-    this.stage.vars.level = 1; // 初始化关卡为1
-    this.levelUpTriggered = false; // 初始化关卡切换标志
+    this.goto(-180, -50);
+    this.direction = 90;
 
-    while (true) {
-      // 检测是否碰到平台
-      if (this.touching(this.sprites["Platforms"].andClones())) {
-        console.log("Touching platform!");
+    // 初始化游戏变量
+    this.stage.vars.level = 1;
+    this.stage.vars.x = 0;
+    this.stage.vars.y2 = 0;
+    this.vars.enterPressCount = 0;
+    this.vars.enterPressTimer = 0;
+    this.stage.vars.score = 0;
+    this.stage.vars.timer = 20;
+    this.stage.vars.gameOver = false;
 
-        // 获取平台 costume 的中心位置，并使用它调整 player 的位置
-        const platformCostume = this.sprites["Platforms"].costume;
-        const platformCenterY = platformCostume.center.y;  // 获取平台 costume 的中心 y
-        const platformY = this.sprites["Platforms"].y;
+    while (!this.stage.vars.gameOver) {
+      // 应用重力
+      this.stage.vars.y2--;
 
-        // 将 Player 置于平台的顶部
-        this.y = platformY + platformCenterY + this.size / 2;
-
-        this.isJumping = false;  // 允许再次跳跃
-        this.canJump = true;     // 恢复跳跃能力
-        this.stage.vars.y2 = 0;  // 重置下落速度
-      }
-
-      // 检测是否碰到尖刺
-      if (this.touching(this.sprites["Spikes"].andClones())) {
-        console.log("Hit spikes!");
-        this.goto(-180, -110); // 重新回到初始位置
-        this.broadcast("dead"); // 触发死亡事件
-      }
-
-      // 检测玩家是否到达屏幕右边缘，进入下一关
-      if (this.compare(this.x, 246) > 0 && !this.levelUpTriggered) {
-        console.log("Level up!");
-
-        this.levelUpTriggered = true; // 标记关卡切换
-        this.stage.vars.level++; // 增加关卡
-        this.broadcast("levelup"); // 触发进入下一关的事件
-
-        // 使用 while 循环等待玩家回到初始位置，防止重复触发
-        while (this.x >= 0) {
-          yield;  // 保持等待，避免多次触发
+      // 检测 Enter 键的按下
+      if (this.keyPressed("enter")) {
+        if (this.vars.enterPressTimer === 0) {
+          // 第一次按下，启动计时器
+          this.vars.enterPressCount = 1;
+          this.vars.enterPressTimer = 10; // 调整计时器时间
+        } else {
+          // 计时器正在运行，增加按键计数
+          this.vars.enterPressCount++;
+          this.vars.enterPressTimer = 10; // 重置计时器
         }
-
-        this.levelUpTriggered = false;  // 准备下一个关卡切换
       }
 
-      // 达到第15关，游戏结束
-      if (this.toNumber(this.stage.vars.level) === 15) {
-        console.log("Game Over! Reached level 15");
-        this.broadcast("end"); // 广播游戏结束事件
+      // 计时器递减
+      if (this.vars.enterPressTimer > 0) {
+        this.vars.enterPressTimer--;
+        if (this.vars.enterPressTimer === 0) {
+          // 根据按键次数设置速度
+          this.stage.vars.x = 2 * this.vars.enterPressCount;
+          this.stage.vars.y2 = 4 * this.vars.enterPressCount;
+          this.vars.enterPressCount = 0;
+        }
+      }
+
+      // 应用水平速度
+      this.stage.vars.x = this.toNumber(this.stage.vars.x) * 0.9;
+      this.x += this.toNumber(this.stage.vars.x);
+
+      // 碰撞检测和位置调整（保持原有逻辑）
+      if (this.touching(this.sprites["Platforms"].andClones())) {
+        this.y += 1;
+      }
+      if (this.touching(this.sprites["Platforms"].andClones())) {
+        this.y += 1;
+      }
+      if (this.touching(this.sprites["Platforms"].andClones())) {
+        this.y += 1;
+      }
+      if (this.touching(this.sprites["Platforms"].andClones())) {
+        this.y += 1;
+      }
+      if (this.touching(this.sprites["Platforms"].andClones())) {
+        this.y -= 4;
+        this.x += this.toNumber(this.stage.vars.x) * -1;
+        this.stage.vars.x = 0;
+      }
+
+      // 垂直运动和碰撞检测（保持原有逻辑）
+      this.y += this.toNumber(this.stage.vars.y2);
+      if (this.touching(this.sprites["Platforms"].andClones())) {
+        this.y += 0 - this.toNumber(this.stage.vars.y2);
+        this.stage.vars.y2 = 1;
+      }
+      this.y -= 1;
+
+      // 防止角色飞出屏幕上方
+      if (this.compare(this.y, 180) > 0) {
+        this.stage.vars.y2 = 0;
+      }
+
+      // 检测是否掉出屏幕下方
+      if (this.y < -180) {
+        this.broadcast("dead");
+        // 重置位置
+        this.goto(-180, -50);
+        this.stage.vars.x = 0;
+        this.stage.vars.y2 = 0;
+        this.vars.enterPressCount = 0;
+        this.vars.enterPressTimer = 0;
       }
 
       yield;
     }
   }
 
-  // 记录按键次数并决定跳跃大小
-  registerJump() {
-    if (!this.isJumping) {
-      this.jumpCount++;  // 每次按下 Enter 键增加计数
-      console.log("Jump count: " + this.jumpCount);
-
-      // 清除已有的超时计时器，重设新的超时
-      if (this.jumpTimeout) {
-        clearTimeout(this.jumpTimeout);
+  *whenGreenFlagClicked2() {
+    while (!this.stage.vars.gameOver) {
+      if (this.touching(this.sprites["Spikes"].andClones())) {
+        this.broadcast("dead");
+        // 重置位置
+        this.goto(-180, -50);
+        this.stage.vars.x = 0;
+        this.stage.vars.y2 = 0;
+        this.vars.enterPressCount = 0;
+        this.vars.enterPressTimer = 0;
       }
-
-      // 设置超时，若在 0.5 秒内没有新的按键，则执行跳跃
-      this.jumpTimeout = setTimeout(() => {
-        this.broadcast("Jump");  // 广播跳跃事件
-      }, 500);
+      if (this.x > 246) {
+        this.goto(-180, -50);
+        this.broadcast("levelup");
+        this.stage.vars.level++;
+        this.stage.vars.score += 10; // 过关加10分
+        console.log("进入下一关：" + this.stage.vars.level);
+      }
+      if (this.toNumber(this.stage.vars.level) === 4) {
+        this.broadcast("gameover");
+        this.stage.vars.gameOver = true;
+      }
+      yield;
     }
+  }
+
+  *startTimer() {
+    while (this.stage.vars.timer > 0 && !this.stage.vars.gameOver) {
+      yield* this.wait(1);
+      this.stage.vars.timer--;
+    }
+    if (!this.stage.vars.gameOver) {
+      this.broadcast("timeup");
+      this.stage.vars.gameOver = true;
+    }
+  }
+
+  *whenTimeUp() {
+    // 时间到，显示得分和奖项
+    this.visible = false;
+    let score = this.stage.vars.score;
+    let prize = "";
+    if (score >= 30) {
+      prize = "一等奖";
+    } else if (score >= 20) {
+      prize = "二等奖";
+    } else if (score >= 10) {
+      prize = "三等奖";
+    } else {
+      prize = "未获奖";
+    }
+    // 显示消息
+    console.log(`时间到！您的总得分是${score}分，获得${prize}！`);
+    // 游戏结束，所有循环会因为 gameOver 为 true 而停止
+  }
+
+  *whenGameOver() {
+    // 游戏结束，显示得分和奖项
+    this.visible = false;
+    let score = this.stage.vars.score;
+    let prize = "";
+    if (score >= 30) {
+      prize = "一等奖";
+    } else if (score >= 20) {
+      prize = "二等奖";
+    } else if (score >= 10) {
+      prize = "三等奖";
+    } else {
+      prize = "未获奖";
+    }
+    // 显示消息
+    console.log(`游戏结束！您的总得分是${score}分，获得${prize}！`);
+    // 游戏结束，所有循环会因为 gameOver 为 true 而停止
   }
 }
